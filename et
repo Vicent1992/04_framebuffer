@@ -1,0 +1,81 @@
+[1mdiff --git a/rkfb_test.c b/rkfb_test.c[m
+[1mindex 33bf295..16d79e5 100755[m
+[1m--- a/rkfb_test.c[m
+[1m+++ b/rkfb_test.c[m
+[36m@@ -30,6 +30,64 @@[m [mvoid sigint_handler(int sig)[m
+     loop_exit = 1;[m
+ }[m
+ [m
+[32m+[m[32mvoid paint_rgb_loop()[m[41m[m
+[32m+[m[32m{[m[41m[m
+[32m+[m[32m    struct win * ui_win;[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mint i = 0, pos = 0;[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mint bgra8888_size;[m[41m[m
+[32m+[m	[32munsigned int bgra8888_colors[3] = {[m[41m[m
+[32m+[m		[32m0xff0000ff & (0xff<<24 | 0xff),     //blue[m[41m[m
+[32m+[m		[32m0xff00ff00 & (0xff<<24 | 0xff<<8),  //green[m[41m[m
+[32m+[m		[32m0xffff0000 & (0xff<<24 | 0xff<<16), //red[m[41m[m
+[32m+[m	[32m};[m[41m[m
+[32m+[m	[32munsigned int *bgra8888_buff = NULL;[m[41m[m
+[32m+[m[41m	[m
+[32m+[m	[32mint bgra565_size;[m[41m[m
+[32m+[m	[32munsigned short rgb565_colors[3] = {[m[41m[m
+[32m+[m		[32m0x1f<<11, //red[m[41m[m
+[32m+[m		[32m0x3f<<5,  //green[m[41m[m
+[32m+[m		[32m0x1f      //blue[m[41m[m
+[32m+[m	[32m};[m[41m[m
+[32m+[m	[32munsigned short *bgra565_buff = NULL;[m[41m[m
+[32m+[m[41m	[m
+[32m+[m	[32mprintf("vicent------------------paint_rgb_loop\n");[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mwhile(!loop_exit)[m[41m[m
+[32m+[m	[32m{[m[41m[m
+[32m+[m		[32mui_win = rk_fb_getuiwin();[m[41m[m
+[32m+[m		[32mif (ui_win == NULL)[m[41m[m
+[32m+[m			[32mprintf("vicent----rk_fb_getuiwin error\n");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m		[32mif (fb_test.fb_format == FB_FORMAT_RGB_565)[m[41m [m
+[32m+[m		[32m{[m[41m[m
+[32m+[m			[32mbgra565_buff = (unsigned short *)ui_win->buffer;[m[41m[m
+[32m+[m			[32mbgra565_size = ui_win->height * ui_win->width;[m[41m[m
+[32m+[m			[32mfor(i = 0; i < bgra565_size; i++)[m[41m[m
+[32m+[m			[32m{[m[41m[m
+[32m+[m				[32mbgra565_buff[i] = rgb565_colors[pos];[m[41m[m
+[32m+[m			[32m}[m[41m[m
+[32m+[m[41m				[m
+[32m+[m		[32m}[m[41m [m
+[32m+[m		[32melse if (fb_test.fb_format == FB_FORMAT_BGRA_8888)[m[41m [m
+[32m+[m		[32m{[m[41m[m
+[32m+[m			[32mbgra8888_buff = (unsigned int *)ui_win->buffer;[m[41m[m
+[32m+[m			[32mbgra8888_size = ui_win->height * ui_win->width;[m[41m[m
+[32m+[m			[32mfor(i = 0; i < bgra8888_size; i++)[m[41m[m
+[32m+[m			[32m{[m[41m[m
+[32m+[m				[32mbgra8888_buff[i] = bgra8888_colors[pos];[m[41m[m
+[32m+[m			[32m}[m[41m[m
+[32m+[m		[32m}[m[41m[m
+[32m+[m		[32msync();[m[41m[m
+[32m+[m		[32m(pos > 1) ? (pos = 0) : (pos++);[m[41m[m
+[32m+[m[41m[m
+[32m+[m		[32mrk_fb_ui_disp(ui_win);[m[41m[m
+[32m+[m		[32musleep(1000*1000);[m[41m[m
+[32m+[m	[32m}[m[41m[m
+[32m+[m[32m}[m[41m[m
+[32m+[m[41m[m
+ void paint_rgbbuff_loop()[m
+ {[m
+     struct win * ui_win;[m
+[36m@@ -126,9 +184,10 @@[m [mint main(int argc, char*argv[])[m
+ [m
+ 	 switch (fb_test.paint_style) {[m
+ 	    case 0:[m
+[31m-			paint_rgbbuff_loop();[m
+[32m+[m	[32m        paint_rgb_loop();[m[41m[m
+ 			break;[m
+ 	    case 1:[m
+[32m+[m			[32mpaint_rgbbuff_loop();[m[41m[m
+ 			break;[m
+ 	    case 2:[m
+ [m
