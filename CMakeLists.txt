@@ -6,12 +6,15 @@ set(RKFB_TEST_APP_SRC_FILES
 	rgb/rgb565_operate.c
 	rgb/rgb888_operate.c
 	rgb/argb8888_operate.c
+	font/font.c
 	rkfb_test.c
 )
 
 include_directories(
 	${app_rkfb_test_SOURCE_DIR}/bmp
 	${app_rkfb_test_SOURCE_DIR}/rgb
+	${app_rkfb_test_SOURCE_DIR}/font
+	${app_rkfb_test_SOURCE_DIR}/../freetype-2.9/include
 )
 
 #SET(CMAKE_BUILE_TYPE DEBUG)       #指定编译类型 Release  Debug
@@ -19,7 +22,7 @@ include_directories(
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c99")
 
 add_executable(app_rkfb_test ${RKFB_TEST_APP_SRC_FILES})
-target_link_libraries(app_rkfb_test rkfb ion)
+target_link_libraries(app_rkfb_test rkfb ion freetype)
 install(TARGETS app_rkfb_test DESTINATION bin)
 
 

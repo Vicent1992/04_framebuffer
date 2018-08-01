@@ -10,6 +10,8 @@
 #include "rgb565_operate.h"
 #include "rgb888_operate.h"
 #include "argb8888_operate.h"
+#include "font.h"
+
 
 typedef struct rkfb_test {
 		struct fb *rk_fb;
@@ -82,6 +84,67 @@ void paint_rgbbuff_loop()
 	}
 }
 
+void paint_string()
+{
+    struct win * ui_win;
+	int width, height;
+	unsigned char* dist_buff = NULL;
+	int dist_offset;
+
+	int x = 100, y = 100;
+	int font_size = 64;
+	int font_width, font_height;
+	unsigned char* font_buffer = NULL;
+	int font_offset;
+
+	int i,j;
+
+	printf("vicent------------------paint_string\n");
+	
+	rk_fb_get_out_device(&width, &height);
+
+	Init_FreeType("/tmp/yhgk.ttf", font_size);
+	
+	font_buffer = malloc(font_size*font_size);
+
+	while(!loop_exit){
+
+		ui_win = rk_fb_getuiwin();
+		if (ui_win == NULL)
+			printf("vicent----rk_fb_getuiwin error\n");
+		dist_buff = ui_win->buffer;
+		memset(dist_buff, 0x88, ui_win->video_ion.size);
+
+		Get_FreeType_Bitmap((void*)font_buffer, &font_width, &font_height, 'W');
+
+
+		font_offset = 0;
+		dist_offset = 0;
+		for (i = y; i < y+font_height; i++) {
+			for (j = x; j < x+font_width; j++) {
+
+				dist_offset = (i*width +j)*(fb_test.fb_bpp >> 3);
+				if(font_buffer[font_offset]) {
+					dist_buff[dist_offset]   = 0xff;
+					dist_buff[dist_offset+1] = 0x00;
+					dist_buff[dist_offset+2] = 0x00;
+					dist_buff[dist_offset+3] = 0xff;
+				}
+				font_offset++;
+			}
+		}
+
+		sync();
+		rk_fb_ui_disp(ui_win);
+		usleep(1000*1000);
+		printf("vicent------------------looping\n");
+	}
+
+	free(font_buffer);
+
+	DeInit_FreeType();
+}
+
 int main(int argc, char*argv[])
 {
     int opt;
@@ -129,6 +192,7 @@ int main(int argc, char*argv[])
 			paint_rgbbuff_loop();
 			break;
 	    case 1:
+			paint_string();
 			break;
 	    case 2:
 			break;
