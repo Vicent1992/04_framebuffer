@@ -9,7 +9,7 @@
 #include "rk_fb.h"
 #include "rgb_management.h"
 #include "font.h"
-#include "draw_pixel.h"
+#include "draw_operate.h"
 
 
 typedef struct rkfb_test {
@@ -17,6 +17,8 @@ typedef struct rkfb_test {
 		int fb_format;
 		int fb_width;
 		int fb_height;
+		int fb_size;
+
         int paint_style;
 }rkfbtest;
 
@@ -43,7 +45,7 @@ void paint_rgbbuff_loop()
 	bpp = fb_test.fb_bpp;
 	width = fb_test.fb_width;
 	height = fb_test.fb_height;
-	size = width*height*(bpp>>3);
+	size = fb_test.fb_size;
 	prepare_rgbbuff(&rgbbuff, width, height, bpp, size);
 
 	printf("vicent --- rgbbuff bits %d width %d height %d size %d\n", bpp, width, height, size);
@@ -86,6 +88,7 @@ void paint_pixel()
 		dp_info.fb_bpp = fb_test.fb_bpp;
 		dp_info.fb_width = fb_test.fb_width;
 		dp_info.fb_height = fb_test.fb_height;
+		dp_info.fb_size   = fb_test.fb_size;
 		dp_info.fb_buff = framebuff;
 		dp_info.color = color;
 		draw_pixel(dp_info);
@@ -98,6 +101,42 @@ void paint_pixel()
 	}
 }
 
+int paint_fbmem_colors()
+{
+	struct win * ui_win;
+	unsigned char* framebuff = NULL;
+
+	int cnt = 0;
+	unsigned int colors[5] = {
+		PIXEL_COLOR_WHITE, PIXEL_COLOR_RED, PIXEL_COLOR_BLUE, PIXEL_COLOR_GREEN, PIXEL_COLOR_BLACK
+	};
+	drawinfo dp_info;
+	printf("vicent------------------paint_fbmem_colors\n");
+	
+	ui_win = rk_fb_getuiwin();
+	if (ui_win == NULL)
+		printf("vicent----rk_fb_getuiwin error\n");
+	framebuff = ui_win->buffer;
+
+	while(!loop_exit)
+	{
+		dp_info.fb_bpp = fb_test.fb_bpp;
+		dp_info.fb_width = fb_test.fb_width;
+		dp_info.fb_height = fb_test.fb_height;
+		dp_info.fb_size   = fb_test.fb_size;
+		dp_info.fb_buff = framebuff;
+		dp_info.color = colors[cnt];
+
+		draw_fbmem_background(dp_info);
+		
+		(cnt > 3) ? (cnt = 0) : (cnt++);
+		sync();
+		rk_fb_ui_disp(ui_win);
+		usleep(1000*1000);
+		printf("vicent------------------looping\n");
+	}
+}
+
 void paint_char()
 {
 	int i,j;
@@ -105,7 +144,10 @@ void paint_char()
     struct win * ui_win;
 	unsigned char* framebuff = NULL;
 
-	int x = 100, y = 100;
+	int x = 100, y = 100, cnt = 0;
+	unsigned int colors[4] = {
+		PIXEL_COLOR_WHITE, PIXEL_COLOR_RED, PIXEL_COLOR_BLUE, PIXEL_COLOR_GREEN
+	};
 	unsigned char wchar = 40;
 	int font_size = 64;
 	int font_width, font_height;
@@ -124,25 +166,27 @@ void paint_char()
 	if (ui_win == NULL)
 		printf("vicent----rk_fb_getuiwin error\n");
 	framebuff = ui_win->buffer;
-	memset(framebuff, 0x88, ui_win->video_ion.size);
 
 	while(!loop_exit)
 	{
+		memset(framebuff, 0x0, fb_test.fb_size);
 		getFontBitmap((void*)font_buffer, &font_width, &font_height, wchar++);
 		
 		dp_info.x = x;
 		dp_info.y = y;
-		dp_info.fb_bpp = fb_test.fb_bpp;
-		dp_info.fb_width = fb_test.fb_width;
+		dp_info.fb_bpp    = fb_test.fb_bpp;
+		dp_info.fb_width  = fb_test.fb_width;
 		dp_info.fb_height = fb_test.fb_height;
-		dp_info.ft_width = font_width;
+		dp_info.fb_size   = fb_test.fb_size;
+		dp_info.ft_width  = font_width;
 		dp_info.ft_height = font_height;
-		dp_info.fb_buff = framebuff;
-		dp_info.ft_buff = font_buffer;
-		dp_info.color = 0x200000FF;
+		dp_info.fb_buff   = framebuff;
+		dp_info.ft_buff   = font_buffer;
+		dp_info.color     = colors[cnt];
 		drawFontBitmap(dp_info);
 
 		sync();
+		(cnt > 2) ? (cnt = 0) : (cnt++);
 		rk_fb_ui_disp(ui_win);
 		usleep(1000*1000);
 		printf("vicent------------------looping\n");
@@ -195,6 +239,8 @@ int main(int argc, char*argv[])
 	
     rk_fb_init(fb_test.fb_format);
 	rk_fb_get_out_device(&fb_test.fb_width, &fb_test.fb_height);
+	fb_test.fb_size = fb_test.fb_width * fb_test.fb_height;
+	fb_test.fb_size *= fb_test.fb_bpp>>3;
 
 	 switch (fb_test.paint_style) {
 	    case 0:
@@ -204,6 +250,9 @@ int main(int argc, char*argv[])
 			paint_pixel();
 			break;
 	    case 2:
+			paint_fbmem_colors();
+			break;
+	    case 3:
 			paint_char();
 			break;
 	}
