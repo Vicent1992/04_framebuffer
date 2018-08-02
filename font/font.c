@@ -10,7 +10,7 @@ FT_BitmapGlyph	  bitmap_glyph ;
 FT_Bitmap	bitmap;
 FT_UInt 	glyph_index;
 
-int Init_FreeType(char* font_path, int font_size)
+int initFreeType(char* font_path, int font_size)
 {
 	
     int error;
@@ -41,7 +41,7 @@ int Init_FreeType(char* font_path, int font_size)
 	return 0;
 }
 
-int DeInit_FreeType()
+int deInitFreeType()
 {
 	if (glyph != NULL) {
     	FT_Done_Glyph(glyph);
@@ -60,8 +60,20 @@ int DeInit_FreeType()
 	printf("vicent------------------DeInit_FreeType\n");
 }
 
+int setFontSize(int font_size)
+{
+	int error;
 
-int Get_FreeType_Bitmap(void*buffer, int *width, int *height, char wchar)
+	error = FT_Set_Pixel_Sizes(face, 0, font_size);
+	if (error)
+	{
+		printf("set font size error!\n");
+		return -1;
+	}
+}
+
+
+int getFontBitmap(void*buffer, int *width, int *height, char wchar)
 {
     int error;
 
@@ -82,25 +94,16 @@ int Get_FreeType_Bitmap(void*buffer, int *width, int *height, char wchar)
     }
 
     FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0 , 1);
-
-    bitmap_glyph  =  (FT_BitmapGlyph)glyph;
-    bitmap  =  bitmap_glyph->bitmap;
+    bitmap_glyph = (FT_BitmapGlyph)glyph;
+    bitmap = bitmap_glyph->bitmap;
  
 
 	memcpy(buffer, bitmap.buffer, bitmap.rows * bitmap.width);
 	*width = bitmap.width;
 	*height = bitmap.rows;
+
+	printf("vicent------------------bitmap.width %d\n", bitmap.width);
+	printf("vicent------------------bitmap.rows  %d\n", bitmap.rows);
+
     return 0;
 }
-
-#if 0
-int main(int argc, char *argv [])
-{
-	Init_FreeType("yhgk.ttf", 32);
-
-	Get_FreeType_Bitmap(NULL, 'a');
-
-	DeInit_FreeType();
-	return 0;
-}
-#endif

@@ -7,6 +7,7 @@ set(RKFB_TEST_APP_SRC_FILES
 	rgb/rgb888_operate.c
 	rgb/argb8888_operate.c
 	font/font.c
+	draw/draw_pixel.c
 	rkfb_test.c
 )
 
@@ -14,6 +15,7 @@ include_directories(
 	${app_rkfb_test_SOURCE_DIR}/bmp
 	${app_rkfb_test_SOURCE_DIR}/rgb
 	${app_rkfb_test_SOURCE_DIR}/font
+	${app_rkfb_test_SOURCE_DIR}/draw
 	${app_rkfb_test_SOURCE_DIR}/../freetype-2.9/include
 )
 

@@ -11,13 +11,17 @@
 #include "rgb888_operate.h"
 #include "argb8888_operate.h"
 #include "font.h"
+#include "draw_pixel.h"
 
 
 typedef struct rkfb_test {
 		struct fb *rk_fb;
         int paint_style;
 		int fb_format;
+		int fb_wight;
+		int fb_height;
 		int fb_bpp;
+		int fb_bitdeep;
 }rkfbtest;
 
 static rkfbtest fb_test = {
@@ -35,12 +39,13 @@ void sigint_handler(int sig)
 void paint_rgbbuff_loop()
 {
     struct win * ui_win;
-	void* dist_buff = NULL;
+	void* framebuff = NULL;
 	void* rgbbuff =NULL;
 	int width, height, size, bpp;
 	printf("vicent------------------paint_rgbbuff\n");
 
-	rk_fb_get_out_device(&width, &height);
+	width = fb_test.fb_wight;
+	height = fb_test.fb_height;
 
 	switch(fb_test.fb_bpp){
 	case 16:
@@ -61,10 +66,9 @@ void paint_rgbbuff_loop()
 		ui_win = rk_fb_getuiwin();
 		if (ui_win == NULL)
 			printf("vicent----rk_fb_getuiwin error\n");
+		framebuff = (void*)ui_win->buffer;
 
-		dist_buff = (void*)ui_win->buffer;
-
-		memcpy(dist_buff, rgbbuff, size);
+		memcpy(framebuff, rgbbuff, size);
 		sync();
 		rk_fb_ui_disp(ui_win);
 		usleep(1000*1000);
@@ -84,26 +88,25 @@ void paint_rgbbuff_loop()
 	}
 }
 
-void paint_string()
+void paint_char()
 {
+	int i,j;
+
     struct win * ui_win;
-	int width, height;
-	unsigned char* dist_buff = NULL;
-	int dist_offset;
+	unsigned char* framebuff = NULL;
 
 	int x = 100, y = 100;
+	unsigned char wchar = 40;
 	int font_size = 64;
 	int font_width, font_height;
 	unsigned char* font_buffer = NULL;
-	int font_offset;
 
-	int i,j;
+	drawinfo dp_info;
 
-	printf("vicent------------------paint_string\n");
-	
-	rk_fb_get_out_device(&width, &height);
+	printf("vicent------------------paint_char\n");
 
-	Init_FreeType("/tmp/yhgk.ttf", font_size);
+
+	initFreeType("/tmp/yhgk.ttf", font_size);
 	
 	font_buffer = malloc(font_size*font_size);
 
@@ -112,27 +115,23 @@ void paint_string()
 		ui_win = rk_fb_getuiwin();
 		if (ui_win == NULL)
 			printf("vicent----rk_fb_getuiwin error\n");
-		dist_buff = ui_win->buffer;
-		memset(dist_buff, 0x88, ui_win->video_ion.size);
+		framebuff = ui_win->buffer;
 
-		Get_FreeType_Bitmap((void*)font_buffer, &font_width, &font_height, 'W');
+		memset(framebuff, 0x88, ui_win->video_ion.size);
 
+		getFontBitmap((void*)font_buffer, &font_width, &font_height, wchar++);
 
-		font_offset = 0;
-		dist_offset = 0;
-		for (i = y; i < y+font_height; i++) {
-			for (j = x; j < x+font_width; j++) {
-
-				dist_offset = (i*width +j)*(fb_test.fb_bpp >> 3);
-				if(font_buffer[font_offset]) {
-					dist_buff[dist_offset]   = 0xff;
-					dist_buff[dist_offset+1] = 0x00;
-					dist_buff[dist_offset+2] = 0x00;
-					dist_buff[dist_offset+3] = 0xff;
-				}
-				font_offset++;
-			}
-		}
+		dp_info.x = x;
+		dp_info.y = y;
+		dp_info.fb_width = fb_test.fb_wight;
+		dp_info.fb_height = fb_test.fb_height;
+		dp_info.fb_bitdeep = fb_test.fb_bitdeep;
+		dp_info.ft_width = font_width;
+		dp_info.ft_height = font_height;
+		dp_info.fb_buff = framebuff;
+		dp_info.ft_buff = font_buffer;
+		dp_info.color = 0x200000FF;
+		drawFontBitmap(dp_info);
 
 		sync();
 		rk_fb_ui_disp(ui_win);
@@ -142,7 +141,7 @@ void paint_string()
 
 	free(font_buffer);
 
-	DeInit_FreeType();
+	deInitFreeType();
 }
 
 int main(int argc, char*argv[])
@@ -186,13 +185,15 @@ int main(int argc, char*argv[])
 	signal(SIGINT, sigint_handler);
 	
     fb_test.rk_fb = rk_fb_init(fb_test.fb_format);
+	fb_test.fb_bitdeep = fb_test.fb_bpp >> 3;
+	rk_fb_get_out_device(&fb_test.fb_wight, &fb_test.fb_height);
 
 	 switch (fb_test.paint_style) {
 	    case 0:
 			paint_rgbbuff_loop();
 			break;
 	    case 1:
-			paint_string();
+			paint_char();
 			break;
 	    case 2:
 			break;

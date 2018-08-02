@@ -9,9 +9,10 @@
 #include <freetype/ftglyph.h>
 
 
-extern int Init_FreeType(char* font_path, int font_size);
-extern int DeInit_FreeType();
-extern int Get_FreeType_Bitmap(void*buffer, int *width, int *height, char wchar);
+extern int initFreeType(char* font_path, int font_size);
+extern int deInitFreeType();
+extern int setFontSize(int font_size);
+extern int getFontBitmap(void*buffer, int *width, int *height, char wchar);
 
 #endif
 
