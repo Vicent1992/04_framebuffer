@@ -4,7 +4,7 @@
 #include "rgb565_operate.h"
 
 
-void prepare_rgb565(void **rgb565_buffer, int width, int height, int *bpp, int *size)
+void prepare_rgb565(void **rgb565_buffer, int width, int height, int size)
 {
 	int i = 0, offset = 0, pos = 0;
 	unsigned short color = 0;
@@ -21,9 +21,8 @@ void prepare_rgb565(void **rgb565_buffer, int width, int height, int *bpp, int *
 	}
 	printf("vicent----prepare_rgb565!\n");
 
-	*size = width*height*2;
-	*bpp  = (2<<3);
-	*rgb565_buffer = malloc(*size);
+
+	*rgb565_buffer = malloc(size);
 	rgbbuff = *rgb565_buffer;
 
 	offset = 0;

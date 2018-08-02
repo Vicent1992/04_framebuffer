@@ -72,12 +72,14 @@ int setFontSize(int font_size)
 	}
 }
 
-
 int getFontBitmap(void*buffer, int *width, int *height, char wchar)
 {
     int error;
 
  	glyph_index = FT_Get_Char_Index(face, wchar); 
+
+	printf("vicent ------------- glyph_index %d\n", glyph_index);
+	printf("vicent ------------------- wchar %d\n", wchar);
 
     error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
     if (error)

@@ -4,7 +4,7 @@
 #include "rgb888_operate.h"
 
 
-void prepare_rgb888(void **rgb888_buffer, int width, int height, int *bpp, int *size)
+void prepare_rgb888(void **rgb888_buffer, int width, int height, int size)
 {
 	int i = 0, offset = 0, pos = 0;
 	unsigned int color = 0;
@@ -24,13 +24,11 @@ void prepare_rgb888(void **rgb888_buffer, int width, int height, int *bpp, int *
 	}
 	printf("vicent----prepare_rgb888!\n");
 
-	*size = width*height*3;
-	*bpp  = (3<<3);
-	*rgb888_buffer = malloc(*size);
+	*rgb888_buffer = malloc(size);
 	rgbbuff = (unsigned char*)*rgb888_buffer;
 
 	offset = 0;
-	pos = (*size) >> 2;
+	pos = (size) >> 2;
 	color = rgb888_colors[0];
 	color_r = (color) & 0xFF;
 	color_g = (color >> 8) & 0xFF;
@@ -42,7 +40,7 @@ void prepare_rgb888(void **rgb888_buffer, int width, int height, int *bpp, int *
 	}
 
 	offset = pos;
-	pos = (*size) >> 1;
+	pos = (size) >> 1;
 	color = rgb888_colors[1];
 	color_r = (color) & 0xFF;
 	color_g = (color >> 8) & 0xFF;
@@ -54,7 +52,7 @@ void prepare_rgb888(void **rgb888_buffer, int width, int height, int *bpp, int *
 	}
 
 	offset = pos;
-	pos = (*size);
+	pos = (size);
 	color = rgb888_colors[2];
 	color_r = (color) & 0xFF;
 	color_g = (color >> 8) & 0xFF;

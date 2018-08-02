@@ -7,21 +7,17 @@
 #include <signal.h>
 
 #include "rk_fb.h"
-#include "rgb565_operate.h"
-#include "rgb888_operate.h"
-#include "argb8888_operate.h"
+#include "rgb_management.h"
 #include "font.h"
 #include "draw_pixel.h"
 
 
 typedef struct rkfb_test {
-		struct fb *rk_fb;
-        int paint_style;
+		int fb_bpp;
 		int fb_format;
 		int fb_wight;
 		int fb_height;
-		int fb_bpp;
-		int fb_bitdeep;
+        int paint_style;
 }rkfbtest;
 
 static rkfbtest fb_test = {
@@ -44,20 +40,11 @@ void paint_rgbbuff_loop()
 	int width, height, size, bpp;
 	printf("vicent------------------paint_rgbbuff\n");
 
+	bpp = fb_test.fb_bpp;
 	width = fb_test.fb_wight;
 	height = fb_test.fb_height;
-
-	switch(fb_test.fb_bpp){
-	case 16:
-		prepare_rgb565(&rgbbuff, width, height, &bpp, &size);
-		break;
-	case 24:
-		prepare_rgb888(&rgbbuff, width, height, &bpp, &size);
-		break;
-	case 32:
-		prepare_argb8888(&rgbbuff, width, height, &bpp, &size);
-		break;
-	}
+	size = width*height*(bpp>>3);
+	prepare_rgbbuff(&rgbbuff, width, height, bpp, size);
 
 	printf("vicent --- rgbbuff bits %d width %d height %d size %d\n", bpp, width, height, size);
 
@@ -74,18 +61,8 @@ void paint_rgbbuff_loop()
 		usleep(1000*1000);
 
 	}
-	
-	switch(fb_test.fb_bpp){
-	case 16:
-		release_rgb565(&rgbbuff);
-		break;
-	case 24:
-		release_rgb888(&rgbbuff);
-		break;
-	case 32:
-		release_argb8888(&rgbbuff);
-		break;
-	}
+
+	release_rgbbuff(&rgbbuff);
 }
 
 void paint_char()
@@ -123,9 +100,9 @@ void paint_char()
 
 		dp_info.x = x;
 		dp_info.y = y;
+		dp_info.fb_bpp = fb_test.fb_bpp;
 		dp_info.fb_width = fb_test.fb_wight;
 		dp_info.fb_height = fb_test.fb_height;
-		dp_info.fb_bitdeep = fb_test.fb_bitdeep;
 		dp_info.ft_width = font_width;
 		dp_info.ft_height = font_height;
 		dp_info.fb_buff = framebuff;
@@ -184,8 +161,7 @@ int main(int argc, char*argv[])
 
 	signal(SIGINT, sigint_handler);
 	
-    fb_test.rk_fb = rk_fb_init(fb_test.fb_format);
-	fb_test.fb_bitdeep = fb_test.fb_bpp >> 3;
+    rk_fb_init(fb_test.fb_format);
 	rk_fb_get_out_device(&fb_test.fb_wight, &fb_test.fb_height);
 
 	 switch (fb_test.paint_style) {
@@ -193,9 +169,9 @@ int main(int argc, char*argv[])
 			paint_rgbbuff_loop();
 			break;
 	    case 1:
-			paint_char();
 			break;
 	    case 2:
+			paint_char();
 			break;
 	}
 	rk_fb_deinit();

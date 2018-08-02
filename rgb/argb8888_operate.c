@@ -4,7 +4,7 @@
 #include "argb8888_operate.h"
 
 
-void prepare_argb8888(void **argb8888_buffer, int width, int height, int *bpp, int *size)
+void prepare_argb8888(void **argb8888_buffer, int width, int height, int size)
 {
 	int i = 0, offset = 0, pos = 0;
 	unsigned int color = 0;
@@ -21,9 +21,7 @@ void prepare_argb8888(void **argb8888_buffer, int width, int height, int *bpp, i
 	}
 	printf("vicent----prepare_argb8888!\n");
 
-	*size = width*height*4;
-	*bpp  = (4<<3);
-	*argb8888_buffer = malloc(*size);
+	*argb8888_buffer = malloc(size);
 	rgbbuff = *argb8888_buffer;
 
 	offset = 0;

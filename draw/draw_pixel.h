@@ -11,7 +11,7 @@ typedef struct draw_info {
 
 	int fb_width;
 	int fb_height;
-	int fb_bitdeep;
+	int fb_bpp;
 	unsigned char *fb_buff;
 
 	unsigned int color;

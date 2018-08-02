@@ -6,6 +6,7 @@ set(RKFB_TEST_APP_SRC_FILES
 	rgb/rgb565_operate.c
 	rgb/rgb888_operate.c
 	rgb/argb8888_operate.c
+	rgb/rgb_management.c
 	font/font.c
 	draw/draw_pixel.c
 	rkfb_test.c
