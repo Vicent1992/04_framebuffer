@@ -15,7 +15,7 @@
 typedef struct rkfb_test {
 		int fb_bpp;
 		int fb_format;
-		int fb_wight;
+		int fb_width;
 		int fb_height;
         int paint_style;
 }rkfbtest;
@@ -41,28 +41,61 @@ void paint_rgbbuff_loop()
 	printf("vicent------------------paint_rgbbuff\n");
 
 	bpp = fb_test.fb_bpp;
-	width = fb_test.fb_wight;
+	width = fb_test.fb_width;
 	height = fb_test.fb_height;
 	size = width*height*(bpp>>3);
 	prepare_rgbbuff(&rgbbuff, width, height, bpp, size);
 
 	printf("vicent --- rgbbuff bits %d width %d height %d size %d\n", bpp, width, height, size);
+	
+	ui_win = rk_fb_getuiwin();
+	if (ui_win == NULL)
+		printf("vicent----rk_fb_getuiwin error\n");
+	framebuff = (void*)ui_win->buffer;
+	memcpy(framebuff, rgbbuff, size);
+	sync();
+	rk_fb_ui_disp(ui_win);
 
 	while(!loop_exit){
-
-		ui_win = rk_fb_getuiwin();
-		if (ui_win == NULL)
-			printf("vicent----rk_fb_getuiwin error\n");
-		framebuff = (void*)ui_win->buffer;
-
-		memcpy(framebuff, rgbbuff, size);
-		sync();
-		rk_fb_ui_disp(ui_win);
 		usleep(1000*1000);
-
+		printf("vicent------------------looping\n");
 	}
 
 	release_rgbbuff(&rgbbuff);
+}
+
+void paint_pixel()
+{
+    struct win * ui_win;
+	unsigned char* framebuff = NULL;
+
+	int x =100, y = 100; 
+	unsigned int color = 0xFFFFFFFF;
+	drawinfo dp_info;
+	printf("vicent------------------paint_char\n");
+	
+	ui_win = rk_fb_getuiwin();
+	if (ui_win == NULL)
+		printf("vicent----rk_fb_getuiwin error\n");
+	framebuff = ui_win->buffer;
+
+	while(!loop_exit)
+	{
+		dp_info.x = x+=2;
+		dp_info.y = y+=10;
+		dp_info.fb_bpp = fb_test.fb_bpp;
+		dp_info.fb_width = fb_test.fb_width;
+		dp_info.fb_height = fb_test.fb_height;
+		dp_info.fb_buff = framebuff;
+		dp_info.color = color;
+		draw_pixel(dp_info);
+
+		sync();
+		rk_fb_ui_disp(ui_win);
+		usleep(100*1000);
+		printf("vicent------------------looping\n");
+
+	}
 }
 
 void paint_char()
@@ -86,22 +119,21 @@ void paint_char()
 	initFreeType("/tmp/yhgk.ttf", font_size);
 	
 	font_buffer = malloc(font_size*font_size);
+	
+	ui_win = rk_fb_getuiwin();
+	if (ui_win == NULL)
+		printf("vicent----rk_fb_getuiwin error\n");
+	framebuff = ui_win->buffer;
+	memset(framebuff, 0x88, ui_win->video_ion.size);
 
-	while(!loop_exit){
-
-		ui_win = rk_fb_getuiwin();
-		if (ui_win == NULL)
-			printf("vicent----rk_fb_getuiwin error\n");
-		framebuff = ui_win->buffer;
-
-		memset(framebuff, 0x88, ui_win->video_ion.size);
-
+	while(!loop_exit)
+	{
 		getFontBitmap((void*)font_buffer, &font_width, &font_height, wchar++);
-
+		
 		dp_info.x = x;
 		dp_info.y = y;
 		dp_info.fb_bpp = fb_test.fb_bpp;
-		dp_info.fb_width = fb_test.fb_wight;
+		dp_info.fb_width = fb_test.fb_width;
 		dp_info.fb_height = fb_test.fb_height;
 		dp_info.ft_width = font_width;
 		dp_info.ft_height = font_height;
@@ -162,13 +194,14 @@ int main(int argc, char*argv[])
 	signal(SIGINT, sigint_handler);
 	
     rk_fb_init(fb_test.fb_format);
-	rk_fb_get_out_device(&fb_test.fb_wight, &fb_test.fb_height);
+	rk_fb_get_out_device(&fb_test.fb_width, &fb_test.fb_height);
 
 	 switch (fb_test.paint_style) {
 	    case 0:
 			paint_rgbbuff_loop();
 			break;
 	    case 1:
+			paint_pixel();
 			break;
 	    case 2:
 			paint_char();
