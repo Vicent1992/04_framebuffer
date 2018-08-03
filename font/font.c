@@ -72,14 +72,11 @@ int set_fontsize(int font_size)
 	}
 }
 
-int get_fontbitmap(void*buffer, FontRect *font_rect, char wchar)
+int get_fontbitmap(void*buffer, FontRect *font_rect, FT_ULong wchar)
 {
     int error;
 
  	glyph_index = FT_Get_Char_Index(face, wchar); 
-
-	printf("vicent ------------- glyph_index %d\n", glyph_index);
-	printf("vicent ------------------- wchar %d\n", wchar);
 
     error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
     if (error)
@@ -105,12 +102,6 @@ int get_fontbitmap(void*buffer, FontRect *font_rect, char wchar)
 	font_rect->left = bitmap_glyph->left;
 	font_rect->top = bitmap_glyph->top;
 	memcpy(buffer, bitmap.buffer, bitmap.rows * bitmap.width);
-
-
-	printf("vicent------------------bitmap_glyph.left %d\n", bitmap_glyph->left);
-	printf("vicent------------------bitmap_glyph.top  %d\n", bitmap_glyph->top);
-	printf("vicent------------------bitmap.width %d\n", bitmap.width);
-	printf("vicent------------------bitmap.rows  %d\n", bitmap.rows);
 
     return 0;
 }

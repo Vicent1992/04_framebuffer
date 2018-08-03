@@ -147,7 +147,8 @@ void paint_string()
 	unsigned int colors[4] = {
 		PIXEL_COLOR_WHITE, PIXEL_COLOR_RED, PIXEL_COLOR_BLUE, PIXEL_COLOR_GREEN
 	};
-	unsigned char wchar[40] = "hello, vicent!";
+	unsigned char wchar[40] = "一二三四五六七, vicent";
+	unsigned long word;
 	int font_size = 64;
 	FontRect font_rect;
 	unsigned char* font_buffer = NULL;
@@ -177,7 +178,14 @@ void paint_string()
 
 		for (i = 0; wchar[i] != '\0'; i++) 
 		{
-			get_fontbitmap((void*)font_buffer, &font_rect, wchar[i]);
+			if (!isascii(wchar[i])) {
+				word = gb2312_conv_unicode(&wchar[i]);
+				i++;
+			} else {
+				word = wchar[i];
+			}
+			get_fontbitmap((void*)font_buffer, &font_rect, word);
+					
 			dp_info.fb_bpp    = fb_test.fb_bpp;
 			dp_info.fb_width  = fb_test.fb_width;
 			dp_info.fb_height = fb_test.fb_height;
@@ -207,6 +215,7 @@ void paint_string()
 
 	deinit_freetype();
 }
+
 
 int main(int argc, char*argv[])
 {

@@ -109,8 +109,6 @@ int draw_font_bitmap(drawinfo dp_info)
 	right  = dp_info.ft_width + left;
 	bottom = dp_info.ft_rows + top;
 
-	printf("vicent----- left %d right %d top %d bottom %d\n", left, right, top, bottom);
-
 	for (j = top; j < bottom; j++) 
 	{
 		for (i = left; i < right; i++) 

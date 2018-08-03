@@ -7,6 +7,9 @@
 #include <freetype/freetype.h>
 #include <freetype/ftglyph.h>
 
+#include "gb2312_unicode.h"
+
+
 typedef struct Font_Rect{
 	int width;
 	int rows;
@@ -17,7 +20,7 @@ typedef struct Font_Rect{
 extern int init_freetype(char* font_path, int font_size);
 extern int deinit_freetype();
 extern int set_fontsize(int font_size);
-extern int get_fontbitmap(void*buffer, FontRect *font_rect, char wchar);
+extern int get_fontbitmap(void*buffer, FontRect *font_rect, FT_ULong wchar);
 
 #endif
 

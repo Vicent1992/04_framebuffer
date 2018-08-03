@@ -8,6 +8,7 @@ set(RKFB_TEST_APP_SRC_FILES
 	rgb/argb8888_operate.c
 	rgb/rgb_management.c
 	font/font.c
+	font/gb2312_unicode.c
 	draw/draw_operate.c
 	draw/color_operate.c
 	rkfb_test.c
