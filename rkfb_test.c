@@ -18,6 +18,7 @@ typedef struct rkfb_test {
 		int fb_width;
 		int fb_height;
 		int fb_size;
+		void* fb_mem;
 
         int paint_style;
 }rkfbtest;
@@ -36,7 +37,6 @@ void sigint_handler(int sig)
 
 void paint_rgbbuff_loop()
 {
-    struct win * ui_win;
 	void* framebuff = NULL;
 	void* rgbbuff =NULL;
 	int width, height, size, bpp;
@@ -46,17 +46,14 @@ void paint_rgbbuff_loop()
 	width = fb_test.fb_width;
 	height = fb_test.fb_height;
 	size = fb_test.fb_size;
+	framebuff = fb_test.fb_mem;
 	prepare_rgbbuff(&rgbbuff, width, height, bpp, size);
 
 	printf("vicent --- rgbbuff bits %d width %d height %d size %d\n", bpp, width, height, size);
-	
-	ui_win = rk_fb_getuiwin();
-	if (ui_win == NULL)
-		printf("vicent----rk_fb_getuiwin error\n");
-	framebuff = (void*)ui_win->buffer;
 	memcpy(framebuff, rgbbuff, size);
+
 	sync();
-	rk_fb_ui_disp(ui_win);
+	rk_fb_ui_disp_ext();
 
 	while(!loop_exit){
 		usleep(1000*1000);
@@ -68,18 +65,10 @@ void paint_rgbbuff_loop()
 
 void paint_pixel()
 {
-    struct win * ui_win;
-	unsigned char* framebuff = NULL;
-
 	int x =100, y = 100; 
 	unsigned int color = 0xFFFFFFFF;
 	drawinfo dp_info;
 	printf("vicent------------------paint_char\n");
-	
-	ui_win = rk_fb_getuiwin();
-	if (ui_win == NULL)
-		printf("vicent----rk_fb_getuiwin error\n");
-	framebuff = ui_win->buffer;
 
 	while(!loop_exit)
 	{
@@ -89,12 +78,12 @@ void paint_pixel()
 		dp_info.fb_width = fb_test.fb_width;
 		dp_info.fb_height = fb_test.fb_height;
 		dp_info.fb_size   = fb_test.fb_size;
-		dp_info.fb_buff = framebuff;
+		dp_info.fb_buff = fb_test.fb_mem;
 		dp_info.color = color;
 		draw_pixel(dp_info);
 
 		sync();
-		rk_fb_ui_disp(ui_win);
+		rk_fb_ui_disp_ext();
 		usleep(100*1000);
 		printf("vicent------------------looping\n");
 
@@ -103,20 +92,12 @@ void paint_pixel()
 
 int paint_fbmem_colors()
 {
-	struct win * ui_win;
-	unsigned char* framebuff = NULL;
-
 	int cnt = 0;
 	unsigned int colors[5] = {
 		PIXEL_COLOR_WHITE, PIXEL_COLOR_RED, PIXEL_COLOR_BLUE, PIXEL_COLOR_GREEN, PIXEL_COLOR_BLACK
 	};
 	drawinfo dp_info;
 	printf("vicent------------------paint_fbmem_colors\n");
-	
-	ui_win = rk_fb_getuiwin();
-	if (ui_win == NULL)
-		printf("vicent----rk_fb_getuiwin error\n");
-	framebuff = ui_win->buffer;
 
 	while(!loop_exit)
 	{
@@ -124,14 +105,14 @@ int paint_fbmem_colors()
 		dp_info.fb_width = fb_test.fb_width;
 		dp_info.fb_height = fb_test.fb_height;
 		dp_info.fb_size   = fb_test.fb_size;
-		dp_info.fb_buff = framebuff;
+		dp_info.fb_buff = fb_test.fb_mem;
 		dp_info.color = colors[cnt];
 
 		draw_fbmem_background(dp_info);
 		
 		(cnt > 3) ? (cnt = 0) : (cnt++);
 		sync();
-		rk_fb_ui_disp(ui_win);
+		rk_fb_ui_disp_ext();
 		usleep(1000*1000);
 		printf("vicent------------------looping\n");
 	}
@@ -140,7 +121,6 @@ int paint_fbmem_colors()
 void paint_string()
 {
 	int i;
-    struct win * ui_win;
 	unsigned char* framebuff = NULL;
 
 	int x = 100, y = 100, cnt = 0;
@@ -157,15 +137,10 @@ void paint_string()
 
 	printf("vicent------------------paint_string\n");
 
-
 	init_freetype("/tmp/yhgk.ttf", font_size);
-	
+
+	framebuff = fb_test.fb_mem;
 	font_buffer = malloc(font_size*font_size);
-	
-	ui_win = rk_fb_getuiwin();
-	if (ui_win == NULL)
-		printf("vicent----rk_fb_getuiwin error\n");
-	framebuff = ui_win->buffer;
 
 	while(!loop_exit)
 	{
@@ -206,7 +181,7 @@ void paint_string()
 			sync();
 			(cnt > 2) ? (cnt = 0) : (cnt++);
 		}
-		rk_fb_ui_disp(ui_win);
+		rk_fb_ui_disp_ext();
 		usleep(500*1000);
 		printf("vicent------------------looping\n");
 	}
@@ -216,10 +191,28 @@ void paint_string()
 	deinit_freetype();
 }
 
+void paint_bmp()
+{
+	void* framebuff = NULL;
+	void* bmpbuff = NULL;
+	printf("vicent------------------paint_bmp\n");
+	
+	framebuff = fb_test.fb_mem;
+
+	sync();
+	rk_fb_ui_disp_ext();
+
+	while(!loop_exit){
+		usleep(1000*1000);
+		printf("vicent------------------looping\n");
+	}
+}
+
 
 int main(int argc, char*argv[])
 {
     int opt;
+	struct win * ui_win;
 
 	while (1) 
 	{
@@ -261,6 +254,17 @@ int main(int argc, char*argv[])
 	rk_fb_get_out_device(&fb_test.fb_width, &fb_test.fb_height);
 	fb_test.fb_size = fb_test.fb_width * fb_test.fb_height;
 	fb_test.fb_size *= fb_test.fb_bpp>>3;
+	printf("        fb_bpp  %8x\n", fb_test.fb_bpp);
+	printf("        fb_width  %8x\n", fb_test.fb_width);
+	printf("        fb_height  %8x\n", fb_test.fb_height);
+	printf("        fb_size  %8x\n", fb_test.fb_size);
+
+	ui_win = rk_fb_getuiwin();
+	if (ui_win == NULL)
+		printf("vicent----rk_fb_getuiwin error\n");
+	fb_test.fb_mem = (void*)ui_win->buffer;
+	printf("        fb_mem  %8x\n", fb_test.fb_mem);
+	
 
 	 switch (fb_test.paint_style) {
 	    case 0:
@@ -276,6 +280,7 @@ int main(int argc, char*argv[])
 			paint_string();
 			break;
 	    case 4:
+			paint_bmp();
 			break;
 	}
 	rk_fb_deinit();

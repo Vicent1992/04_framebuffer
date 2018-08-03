@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6.2)
 project(app_rkfb_test)
 
 set(RKFB_TEST_APP_SRC_FILES
-#	bmp/bmp_operate.c
+	bmp/bmp_operate.c
 	rgb/rgb565_operate.c
 	rgb/rgb888_operate.c
 	rgb/argb8888_operate.c

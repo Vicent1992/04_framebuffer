@@ -14,10 +14,11 @@
 #include "argb8888_operate.h"
 
 
-int save_rgbbuff_to_bmp(void* rgbbuff, int bpp, int width, int height, int size)
+int save_rgbbuff_to_bmp(void* rgbbuff, int bpp, int width, int height)
 {  
     int img_fd;
 	char img_name[48];
+	int size = width * height * bpp >> 3;
     BITMAPFILEHEADER file_head;
     BITMAPINFOHEADER info_head;
     //RGBQUAD rgb_quad;
@@ -43,7 +44,7 @@ int save_rgbbuff_to_bmp(void* rgbbuff, int bpp, int width, int height, int size)
 	info_head.biClrUsed = 0;
 	info_head.biClrImportant = 0;
 
-	sprintf(img_name,"res_img/rgb_%dx%d_bpp%d.bmp", width, height, bpp);
+	sprintf(img_name,"rgb_%dx%d_bpp%d.bmp", width, height, bpp);
     img_fd = open(img_name, O_RDWR | O_CREAT, 0644);
     if (img_fd < 0) {
 		perror("open image");

@@ -56,5 +56,7 @@ typedef struct bmp_operate {
 		void* rgb888buff;
 }bmpoperate;
 
+extern int save_rgbbuff_to_bmp(void* rgbbuff, int bpp, int width, int height);
+
 #endif
 

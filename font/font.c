@@ -53,6 +53,24 @@ int deinit_freetype()
 	printf("vicent------------------DeInit_FreeType\n");
 }
 
+/**********************************************/
+/* set_font_charmap            				  */
+/* charmap:                        			  */
+/* 	FT_ENCODING_UNICODE						  */
+/* 	FT_ENCODING_GB2312 and so on			  */
+/**********************************************/
+int set_font_charmap(int charmap)
+{
+	int error;
+
+	error = FT_Select_Charmap(face, charmap);
+	if (error)
+	{
+		printf("set font charmap error!\n");
+		return -1;
+	}
+}
+
 int set_font_pixelsize(int font_size)
 {
 	int error;
@@ -122,10 +140,10 @@ int get_font_bitmap(void*buffer, FontRect *font_rect, FT_ULong wchar)
         return -1;
     }
 
-    FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0 , 1);
+    FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+    FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0, 1); 
     bitmap_glyph = (FT_BitmapGlyph)glyph;
     bitmap = bitmap_glyph->bitmap;
- 
 
 	font_rect->width = bitmap.width;
 	font_rect->rows = bitmap.rows;
