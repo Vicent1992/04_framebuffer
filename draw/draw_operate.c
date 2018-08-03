@@ -51,8 +51,14 @@ int draw_pixel(drawinfo dp_info)
 	unsigned short *draw_16;
 	ColorVect color_argb;
 
-	if ((dp_info.x > dp_info.fb_width) || (dp_info.y > dp_info.fb_height))
-		return 0;
+	if (dp_info.x < 0 || dp_info.y < 0) {
+		return -1;
+	} 
+	else if ((dp_info.x >= dp_info.fb_width) || (dp_info.y >= dp_info.fb_height)) 
+	{
+		dp_info.x %= dp_info.fb_width;
+		dp_info.y %= dp_info.fb_height;
+	}
 
 	hor_var  = dp_info.fb_bpp >> 3;
 	ver_var  = dp_info.fb_width * hor_var;
@@ -81,7 +87,7 @@ int draw_pixel(drawinfo dp_info)
 }
 
 
-int drawFontBitmap(drawinfo dp_info)
+int draw_font_bitmap(drawinfo dp_info)
 {
 	int i, j;
 	int left, top, right, bottom;
@@ -97,10 +103,13 @@ int drawFontBitmap(drawinfo dp_info)
 		printf("parameter error, please check drawinfo\n");
 		return -1;
 	}
-	left = dp_info.x;
-	right = left + dp_info.ft_width;
-	top = dp_info.y;
-	bottom = top + dp_info.ft_height;
+
+	left   = dp_info.x + dp_info.ft_left;
+	top    = dp_info.y + (dp_info.ft_size - dp_info.ft_top);
+	right  = dp_info.ft_width + left;
+	bottom = dp_info.ft_rows + top;
+
+	printf("vicent----- left %d right %d top %d bottom %d\n", left, right, top, bottom);
 
 	for (j = top; j < bottom; j++) 
 	{

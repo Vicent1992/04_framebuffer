@@ -137,10 +137,9 @@ int paint_fbmem_colors()
 	}
 }
 
-void paint_char()
+void paint_string()
 {
-	int i,j;
-
+	int i;
     struct win * ui_win;
 	unsigned char* framebuff = NULL;
 
@@ -148,17 +147,17 @@ void paint_char()
 	unsigned int colors[4] = {
 		PIXEL_COLOR_WHITE, PIXEL_COLOR_RED, PIXEL_COLOR_BLUE, PIXEL_COLOR_GREEN
 	};
-	unsigned char wchar = 40;
+	unsigned char wchar[40] = "hello, vicent!";
 	int font_size = 64;
-	int font_width, font_height;
+	FontRect font_rect;
 	unsigned char* font_buffer = NULL;
 
 	drawinfo dp_info;
 
-	printf("vicent------------------paint_char\n");
+	printf("vicent------------------paint_string\n");
 
 
-	initFreeType("/tmp/yhgk.ttf", font_size);
+	init_freetype("/tmp/yhgk.ttf", font_size);
 	
 	font_buffer = malloc(font_size*font_size);
 	
@@ -169,32 +168,44 @@ void paint_char()
 
 	while(!loop_exit)
 	{
-		memset(framebuff, 0x0, fb_test.fb_size);
-		getFontBitmap((void*)font_buffer, &font_width, &font_height, wchar++);
-		
+		x += 10;
+		y += 20;
 		dp_info.x = x;
 		dp_info.y = y;
-		dp_info.fb_bpp    = fb_test.fb_bpp;
-		dp_info.fb_width  = fb_test.fb_width;
-		dp_info.fb_height = fb_test.fb_height;
-		dp_info.fb_size   = fb_test.fb_size;
-		dp_info.ft_width  = font_width;
-		dp_info.ft_height = font_height;
-		dp_info.fb_buff   = framebuff;
-		dp_info.ft_buff   = font_buffer;
-		dp_info.color     = colors[cnt];
-		drawFontBitmap(dp_info);
+		dp_info.ft_size = font_size;
+		memset(framebuff, 0x0, fb_test.fb_size);
 
-		sync();
-		(cnt > 2) ? (cnt = 0) : (cnt++);
+		for (i = 0; wchar[i] != '\0'; i++) 
+		{
+			get_fontbitmap((void*)font_buffer, &font_rect, wchar[i]);
+			dp_info.fb_bpp    = fb_test.fb_bpp;
+			dp_info.fb_width  = fb_test.fb_width;
+			dp_info.fb_height = fb_test.fb_height;
+			dp_info.fb_size   = fb_test.fb_size;
+			dp_info.fb_buff   = framebuff;
+	
+			dp_info.ft_left  = font_rect.left;
+			dp_info.ft_width  = font_rect.width;
+			dp_info.ft_rows   = font_rect.rows;
+			dp_info.ft_top 	  = font_rect.top;
+			dp_info.ft_buff   = font_buffer;
+			
+			dp_info.color     = colors[cnt];
+
+			draw_font_bitmap(dp_info);
+
+			dp_info.x += font_rect.left + font_rect.width;
+			sync();
+			(cnt > 2) ? (cnt = 0) : (cnt++);
+		}
 		rk_fb_ui_disp(ui_win);
-		usleep(1000*1000);
+		usleep(500*1000);
 		printf("vicent------------------looping\n");
 	}
 
 	free(font_buffer);
 
-	deInitFreeType();
+	deinit_freetype();
 }
 
 int main(int argc, char*argv[])
@@ -253,7 +264,9 @@ int main(int argc, char*argv[])
 			paint_fbmem_colors();
 			break;
 	    case 3:
-			paint_char();
+			paint_string();
+			break;
+	    case 4:
 			break;
 	}
 	rk_fb_deinit();

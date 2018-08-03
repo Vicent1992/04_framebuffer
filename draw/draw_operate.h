@@ -17,14 +17,17 @@ typedef struct draw_info {
 	unsigned int color;
 
 	int ft_width;
-	int ft_height;
+	int ft_rows;
+	int ft_left;
+	int ft_top;
+	int ft_size;
 	unsigned char *ft_buff;
 
 } drawinfo;
 
 extern int draw_fbmem_background(drawinfo dp_info);
 extern int draw_pixel(drawinfo dp_info);
-extern int drawFontBitmap(drawinfo dp_info);
+extern int draw_font_bitmap(drawinfo dp_info);
 
 #endif
 
