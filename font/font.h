@@ -19,8 +19,10 @@ typedef struct Font_Rect{
 
 extern int init_freetype(char* font_path, int font_size);
 extern int deinit_freetype();
-extern int set_fontsize(int font_size);
-extern int get_fontbitmap(void*buffer, FontRect *font_rect, FT_ULong wchar);
+extern int set_font_pixelsize(int font_size);
+extern int set_font_charsize(int font_size);
+extern int set_font_angle(float angle);
+extern int get_font_bitmap(void*buffer, FontRect *font_rect, FT_ULong wchar);
 
 #endif
 

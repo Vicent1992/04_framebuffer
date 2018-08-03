@@ -27,7 +27,7 @@ include_directories(
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c99")
 
 add_executable(app_rkfb_test ${RKFB_TEST_APP_SRC_FILES})
-target_link_libraries(app_rkfb_test rkfb ion freetype)
+target_link_libraries(app_rkfb_test rkfb ion freetype m)
 install(TARGETS app_rkfb_test DESTINATION bin)
 
 

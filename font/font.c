@@ -1,14 +1,12 @@
+#define _GNU_SOURCE
 
+#include <math.h>
 
 #include "font.h"
 
 
 FT_Library	library;
 FT_Face 	face;
-FT_Glyph	glyph;
-FT_BitmapGlyph	  bitmap_glyph ;
-FT_Bitmap	bitmap;
-FT_UInt 	glyph_index;
 
 int init_freetype(char* font_path, int font_size)
 {
@@ -30,7 +28,7 @@ int init_freetype(char* font_path, int font_size)
 		return -1;
 	}
 
-	error = FT_Set_Pixel_Sizes(face, 0, font_size);
+	error = FT_Set_Pixel_Sizes(face, font_size, font_size);
 	//error = FT_Set_Char_Size(face, 16*64, 16*64, 96, 96);
 	if (error)
 	{
@@ -43,11 +41,6 @@ int init_freetype(char* font_path, int font_size)
 
 int deinit_freetype()
 {
-	if (glyph != NULL) {
-    	FT_Done_Glyph(glyph);
-    	glyph  =  NULL;
-	}
-
 	if (face != NULL) {
     	FT_Done_Face(face);
     	face  =  NULL;
@@ -60,11 +53,11 @@ int deinit_freetype()
 	printf("vicent------------------DeInit_FreeType\n");
 }
 
-int set_fontsize(int font_size)
+int set_font_pixelsize(int font_size)
 {
 	int error;
 
-	error = FT_Set_Pixel_Sizes(face, 0, font_size);
+	error = FT_Set_Pixel_Sizes(face, font_size, font_size);
 	if (error)
 	{
 		printf("set font size error!\n");
@@ -72,9 +65,46 @@ int set_fontsize(int font_size)
 	}
 }
 
-int get_fontbitmap(void*buffer, FontRect *font_rect, FT_ULong wchar)
+int set_font_charsize(int font_size)
+{
+	int error;
+
+	error = FT_Set_Char_Size(face, font_size << 6, font_size << 6, 96, 96);
+	if (error)
+	{
+		printf("set font size error!\n");
+		return -1;
+	}
+}
+
+/**********************************************/
+/* set_font_angle            				  */
+/*                           				  */
+/* Depend On set_font_charsize				  */
+/* and fontsize just be set 24/32 and so on.  */
+/**********************************************/
+int set_font_angle(float angle)
+{
+	FT_Matrix matrix;
+	FT_Vector delta;
+
+	angle = (angle/180.)* 3.14; 
+	matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L ); 
+    matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L ); 
+    matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L ); 
+    matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+
+	FT_Set_Transform( face, &matrix, &delta);
+}
+
+int get_font_bitmap(void*buffer, FontRect *font_rect, FT_ULong wchar)
 {
     int error;
+
+	FT_Glyph	glyph;
+	FT_BitmapGlyph	  bitmap_glyph ;
+	FT_Bitmap	bitmap;
+	FT_UInt 	glyph_index;
 
  	glyph_index = FT_Get_Char_Index(face, wchar); 
 
@@ -102,6 +132,11 @@ int get_fontbitmap(void*buffer, FontRect *font_rect, FT_ULong wchar)
 	font_rect->left = bitmap_glyph->left;
 	font_rect->top = bitmap_glyph->top;
 	memcpy(buffer, bitmap.buffer, bitmap.rows * bitmap.width);
+
+	if (glyph != NULL) {
+    	FT_Done_Glyph(glyph);
+    	glyph  =  NULL;
+	}
 
     return 0;
 }

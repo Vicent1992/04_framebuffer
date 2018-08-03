@@ -184,7 +184,7 @@ void paint_string()
 			} else {
 				word = wchar[i];
 			}
-			get_fontbitmap((void*)font_buffer, &font_rect, word);
+			get_font_bitmap((void*)font_buffer, &font_rect, word);
 					
 			dp_info.fb_bpp    = fb_test.fb_bpp;
 			dp_info.fb_width  = fb_test.fb_width;
