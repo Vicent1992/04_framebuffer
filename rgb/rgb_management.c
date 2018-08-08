@@ -19,6 +19,7 @@ int prepare_rgbbuff(void **rgbbuff, int width, int height, int bpp, int size)
 	}
 
 }
+
 int release_rgbbuff(void **rgbbuff)
 {
 	if(*rgbbuff != NULL) {

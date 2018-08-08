@@ -10,6 +10,8 @@
 #include "rgb_management.h"
 #include "font.h"
 #include "draw_operate.h"
+#include "bmp_operate.h"
+#include "nv12_operate.h"
 
 
 typedef struct rkfb_test {
@@ -19,6 +21,7 @@ typedef struct rkfb_test {
 		int fb_height;
 		int fb_size;
 		void* fb_mem;
+		void* win1_fbmem;
 
         int paint_style;
 }rkfbtest;
@@ -62,6 +65,66 @@ void paint_rgbbuff_loop()
 
 	release_rgbbuff(&rgbbuff);
 }
+
+void paint_yuv()
+{
+	struct win* win1;
+	void* win0_fbmem = NULL;
+	void* win1_fbmem = NULL;
+	void* nv12buff =NULL;
+	void* rgbbuff =NULL;
+	int width, height, yuv_size, rgb_size, bpp;
+	printf("vicent------------------paint_yuv\n");
+
+
+	if(fb_test.fb_format == FB_FORMAT_RGB_565) 
+	{
+	    struct color_key key;
+		key.blue = 0x0;
+	    key.green = 0x0;
+	    key.red = 0x0;
+		key.enable = 1;
+		if (rk_fb_set_color_key(key) == -1) {
+	        printf("rkfb_set_color_key err\n");
+	    }
+	}
+	
+	
+	win1 = rk_fb_getvideowin();
+	fb_test.win1_fbmem = (void*)win1->buffer;
+
+	bpp = fb_test.fb_bpp;
+	width = fb_test.fb_width;
+	height = fb_test.fb_height;
+	yuv_size = width*height*3>>1;
+	rgb_size = fb_test.fb_size;
+	win1_fbmem = fb_test.win1_fbmem;
+	win0_fbmem = fb_test.fb_mem;
+	
+	prepare_nv12(&nv12buff, width, height);
+	get_yuyv_buffer("720x1280.yuv", nv12buff, yuv_size);
+	memcpy(win1_fbmem, nv12buff, yuv_size);
+	sync();
+	rk_fb_video_disp(win1);
+	
+	printf("vicent --- rgbbuff bits %d width %d height %d\n", bpp, width, height);
+
+	while(!loop_exit){
+
+		prepare_rgbbuff(&rgbbuff, width, height, bpp, rgb_size);
+		sync();
+		memcpy(win0_fbmem, rgbbuff, rgb_size);
+		sync();
+		rk_fb_ui_disp_ext();
+		release_rgbbuff(&rgbbuff);
+
+		usleep(100*1000);
+		printf("vicent------------------paint_yuv looping\n");
+	}
+	release_nv12(&nv12buff);
+
+}
+
 
 void paint_pixel()
 {
@@ -193,17 +256,56 @@ void paint_string()
 
 void paint_bmp()
 {
-	void* framebuff = NULL;
-	void* bmpbuff = NULL;
+	int ret, offset, h_size;
+	int i, j, h_var, v_var;
+	int x = 10, y = 100;
+	unsigned char* framebuff = NULL;
+	
+	int bmp_bpp, bmp_width, bmp_height, bmp_size;
+	unsigned char* bmp_buff = NULL;
 	printf("vicent------------------paint_bmp\n");
 	
-	framebuff = fb_test.fb_mem;
+	framebuff = (unsigned char*)fb_test.fb_mem;
 
-	sync();
-	rk_fb_ui_disp_ext();
+	BITMAPFILEHEADER file_head;
+	BITMAPINFOHEADER info_head;
 
-	while(!loop_exit){
+	while(!loop_exit)
+	{
+		ret = get_bmp_fileinfo("abc.bmp", &file_head, &info_head);
+		if(ret == 0) {
+			bmp_bpp 	= info_head.biBitCount;
+			bmp_width 	= info_head.biWidth;
+			bmp_height 	= info_head.biHeight;
+			bmp_size 	= bmp_width * abs(bmp_height) * bmp_bpp>>3;
+
+			printf("vicent ---bpp %d width %d height %d size %d\n", 
+						 bmp_bpp, bmp_width, bmp_height, bmp_size);
+			bmp_buff = malloc(bmp_size);
+			memset(bmp_buff, 0x0F, bmp_size);
+		}
+
+		ret = get_bmp_buffer("abc.bmp", bmp_buff, bmp_size);
+		if(ret == 0) {
+			bmp_height = abs(bmp_height);
+			h_var = fb_test.fb_bpp >> 3;
+			v_var = fb_test.fb_width * h_var;
+			h_size = bmp_width * h_var;
+			printf("vicent ---h_var %d v_var %d\n", h_var, v_var);
+			
+			offset = 0;
+			for (j = y; j < y+bmp_height; j++) 
+			{
+				memcpy(&framebuff[j*v_var + x*h_var], &bmp_buff[offset], h_size);
+				offset+= h_size;
+			}
+			sync();
+			free(bmp_buff);
+		}
+
+		rk_fb_ui_disp_ext();
 		usleep(1000*1000);
+
 		printf("vicent------------------looping\n");
 	}
 }
@@ -254,16 +356,16 @@ int main(int argc, char*argv[])
 	rk_fb_get_out_device(&fb_test.fb_width, &fb_test.fb_height);
 	fb_test.fb_size = fb_test.fb_width * fb_test.fb_height;
 	fb_test.fb_size *= fb_test.fb_bpp>>3;
-	printf("        fb_bpp  %8x\n", fb_test.fb_bpp);
-	printf("        fb_width  %8x\n", fb_test.fb_width);
-	printf("        fb_height  %8x\n", fb_test.fb_height);
-	printf("        fb_size  %8x\n", fb_test.fb_size);
+	printf("        fb_bpp     %d\n", fb_test.fb_bpp);
+	printf("        fb_width   %d\n", fb_test.fb_width);
+	printf("        fb_height  %d\n", fb_test.fb_height);
+	printf("        fb_size    %x\n", fb_test.fb_size);
 
 	ui_win = rk_fb_getuiwin();
 	if (ui_win == NULL)
 		printf("vicent----rk_fb_getuiwin error\n");
 	fb_test.fb_mem = (void*)ui_win->buffer;
-	printf("        fb_mem  %8x\n", fb_test.fb_mem);
+	printf("        fb_mem     %8x\n\n", fb_test.fb_mem);
 	
 
 	 switch (fb_test.paint_style) {
@@ -281,6 +383,9 @@ int main(int argc, char*argv[])
 			break;
 	    case 4:
 			paint_bmp();
+			break;
+	    case 5:
+			paint_yuv();
 			break;
 	}
 	rk_fb_deinit();

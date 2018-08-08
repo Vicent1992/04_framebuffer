@@ -58,5 +58,11 @@ typedef struct bmp_operate {
 
 extern int save_rgbbuff_to_bmp(void* rgbbuff, int bpp, int width, int height);
 
+extern int get_bmp_fileinfo(    char *filename, BITMAPFILEHEADER *file_head, 
+							 BITMAPINFOHEADER *info_head);
+extern int get_bmp_buffer(    char *filename, void* buffer, int size);
+
+
+
 #endif
 

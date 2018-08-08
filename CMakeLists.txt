@@ -7,6 +7,7 @@ set(RKFB_TEST_APP_SRC_FILES
 	rgb/rgb888_operate.c
 	rgb/argb8888_operate.c
 	rgb/rgb_management.c
+	yuv/nv12_operate.c
 	font/font.c
 	font/gb2312_unicode.c
 	draw/draw_operate.c
@@ -17,6 +18,7 @@ set(RKFB_TEST_APP_SRC_FILES
 include_directories(
 	${app_rkfb_test_SOURCE_DIR}/bmp
 	${app_rkfb_test_SOURCE_DIR}/rgb
+	${app_rkfb_test_SOURCE_DIR}/yuv
 	${app_rkfb_test_SOURCE_DIR}/font
 	${app_rkfb_test_SOURCE_DIR}/draw
 	${app_rkfb_test_SOURCE_DIR}/../freetype-2.9/include
